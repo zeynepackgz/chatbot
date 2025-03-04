@@ -3,7 +3,7 @@ from chatbot import predict_class, get_response, intents
 from flask_cors import CORS
 
 app = Flask(__name__, template_folder='templates')
-CORS(app)
+CORS(app, resources={r"/chat": {"origins": "*"}})
 
 @app.route("/")
 def index():

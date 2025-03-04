@@ -7,10 +7,6 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
-nltk.download('punkt')
-nltk.download('wordnet')
-nltk.download('punkt_tab')  # Bu satırı ekleyin
-
 lemmatizer = WordNetLemmatizer()
 
 # JSON dosyasını yükle
@@ -26,7 +22,7 @@ except FileNotFoundError:
 
 words = pickle.load(open(os.path.join(current_dir, 'words.pkl'), 'rb'))
 classes = pickle.load(open(os.path.join(current_dir, 'classes.pkl'), 'rb'))
-model = load_model(os.path.join(current_dir, 'chatbot_model.h5'))
+model = load_model(os.path.join(current_dir, 'chatbot_model.h5'), compile=False)
 
 
 def clean_up_sentence(sentence):
@@ -95,7 +91,7 @@ def get_response(ints, intents_json):
 
 
 
-def predict_class(sentence):
+"""def predict_class(sentence):
     bow = bag_of_words(sentence)
     res = model.predict(np.array([bow]))[0]
     ERROR_THRESHOLD = 0.25
@@ -110,7 +106,27 @@ def predict_class(sentence):
     if not return_list:
         return_list.append({'intent': 'default_fallback', 'probability': '0.0'})
 
-    return return_list
+    return return_list"""
+
+def predict_class(sentence):
+    try:
+        bow = bag_of_words(sentence)
+        res = model.predict(np.array([bow]), verbose=0)[0]  # verbose=0 ile gereksiz çıktıları engelle
+        ERROR_THRESHOLD = 0.25
+        results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD]
+
+        results.sort(key=lambda x: x[1], reverse=True)
+        return_list = []
+        for r in results:
+            return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
+
+        if not return_list:
+            return_list.append({'intent': 'default_fallback', 'probability': '0.8'})
+
+        return return_list
+    except Exception as e:
+        print(f"Tahmin hatası: {str(e)}")
+        return [{'intent': 'default_fallback', 'probability': '0.8'}]
 
 
 if __name__ == "__main__":
