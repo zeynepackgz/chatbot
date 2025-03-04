@@ -7,6 +7,11 @@ import nltk
 from nltk.stem import WordNetLemmatizer
 from tensorflow.keras.models import load_model
 
+import nltk
+nltk.download('punkt')
+nltk.download('wordnet')
+nltk.download('punkt_tab')  # Bu satırı ekleyin
+
 lemmatizer = WordNetLemmatizer()
 
 # JSON dosyasını yükle
