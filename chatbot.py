@@ -95,24 +95,6 @@ def get_response(ints, intents_json):
 
 
 
-
-"""def predict_class(sentence):
-    bow = bag_of_words(sentence)
-    res = model.predict(np.array([bow]))[0]
-    ERROR_THRESHOLD = 0.25
-    results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD]
-
-    results.sort(key=lambda x: x[1], reverse=True)
-    return_list = []
-    for r in results:
-        return_list.append({'intent': classes[r[0]], 'probability': str(r[1])})
-
-    # Eğer model hiçbir tahminde bulunamazsa varsayılan intent döndür
-    if not return_list:
-        return_list.append({'intent': 'default_fallback', 'probability': '0.0'})
-
-    return return_list"""
-
 def predict_class(sentence):
     try:
         bow = bag_of_words(sentence)
