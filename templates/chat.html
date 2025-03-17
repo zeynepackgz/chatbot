@@ -9,8 +9,9 @@ chat.html github kodu:
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             min-height: 100vh;
+            background-color: transparent !important; /* Sayfanın arka planını transparan yap */
         }
 
         .chat-icon {
@@ -22,6 +23,7 @@ chat.html github kodu:
             cursor: pointer;
             z-index: 1000;
             transition: transform 0.2s ease;
+            background: transparent; /* İkonun arka planını transparan yap */
         }
 
         .chat-icon:hover {
@@ -29,16 +31,18 @@ chat.html github kodu:
         }
 
         .chat-container {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 350px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background-color: transparent !important;
+            background-image: none; /* Arka plan resmini kaldır */
             display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            max-height: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             flex-direction: column;
-            z-index: 1000;
+            z-index: 1001 !important;
         }
 
         .chat-container.visible {
