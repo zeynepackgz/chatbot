@@ -1,16 +1,16 @@
+chat.html github kodu:
 <!DOCTYPE html>
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BERA Chatbot</title>
+    <title>Website</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             min-height: 100vh;
-            background-color: transparent !important;
         }
 
         .chat-icon {
@@ -22,7 +22,6 @@
             cursor: pointer;
             z-index: 1000;
             transition: transform 0.2s ease;
-            background: transparent;
         }
 
         .chat-icon:hover {
@@ -30,17 +29,16 @@
         }
 
         .chat-container {
-            background-color: transparent !important;
-            display: none;
             position: fixed;
-            bottom: 80px;
+            bottom: 90px;
             right: 20px;
-            width: 300px;
-            max-height: 500px;
+            width: 350px;
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: none;
             flex-direction: column;
-            z-index: 1001 !important;
+            z-index: 1000;
         }
 
         .chat-container.visible {
@@ -85,8 +83,6 @@
             height: 370px;
             overflow-y: auto;
             padding: 15px;
-            background-color: white;
-            border-radius: 0 0 10px 10px;
         }
 
         .message {
@@ -109,8 +105,6 @@
             padding: 15px;
             border-top: 1px solid #ddd;
             display: flex;
-            background-color: white;
-            border-radius: 0 0 10px 10px;
         }
 
         input[type="text"] {
@@ -129,11 +123,65 @@
             padding: 10px 20px;
             cursor: pointer;
         }
+
+        .app-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .app-link, .form-link {
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .app-link {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .form-link {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .footer {
+            margin-top: 15px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            font-size: 20px;
+        }
+
+        .loading-dots::after {
+            content: '...';
+            animation: blink 1.4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-<img src="{{ url_for('static', filename='images/BERA.png') }}" class="chat-icon" onclick="toggleChat()" alt="Chat Icon">
+<img src="{{ url_for('static', filename='images/BERA.png') }}"
+     class="chat-icon"
+     onclick="toggleChat()"
+     alt="Chat Icon">
 
 <div class="chat-container" id="chatContainer">
     <div class="chat-header">
@@ -155,12 +203,22 @@
         const chatBox = document.getElementById('chatBox');
 
         if (isChatOpen) {
+            // Sohbet kutusunu temizle
             chatBox.innerHTML = '';
         }
 
         isChatOpen = !isChatOpen;
         chatContainer.classList.toggle('visible', isChatOpen);
+
+
+        //sohbet kutusunun input alanında odaklanması için
+        if (isChatOpen) {
+            setTimeout(() => {
+                userInput.focus();
+            }, 100);
+        }
     }
+
 
     async function sendMessage() {
         const userInput = document.getElementById('userInput');
@@ -168,7 +226,18 @@
 
         if (!userInput.value.trim()) return;
 
+        // Kullanıcı mesajını ekle
         chatBox.innerHTML += `<div class="message user-message">${userInput.value}</div>`;
+
+        // Yükleme simgesini ekle
+        chatBox.innerHTML += `
+            <div class="message bot-message loading-dots">
+                <span class="loading-dots"></span>
+            </div>
+        `;
+
+        // ChatBox'ı en sona kaydır
+        chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
             const response = await fetch('/chat', {
@@ -177,15 +246,100 @@
                 body: JSON.stringify({message: userInput.value})
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
-            chatBox.innerHTML += `<div class="message bot-message">${data.response.text}</div>`;
+
+            // Yükleme simgesini kaldır
+            const loadingMessage = chatBox.querySelector('.loading-dots');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+
+            // Botun yanıtını işle
+            handleBotResponse(data, chatBox);
+
         } catch (error) {
-            chatBox.innerHTML += `<div class="message bot-message error">Hata oluştu: ${error.message}</div>`;
+            console.error('Fetch error:', error);
+
+            // Yükleme simgesini kaldır
+            const loadingMessage = chatBox.querySelector('.loading-dots');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+
+            // Hata mesajını göster
+            chatBox.innerHTML += `
+                <div class="message bot-message error">
+                    Hata oluştu: ${error.message}
+                </div>
+            `;
         }
 
+        // Input'u temizle
         userInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
     }
+
+    function handleBotResponse(data, container) {
+        let html = '';
+
+        switch(data.response.type) {
+            case 'apps':
+                html = `
+                    <div class="message bot-message">
+                        <p>${data.response.text}</p>
+                        <div class="app-list">
+                            ${data.response.apps.map(app => `
+                                <a href="${app.url}"
+                                   target="_blank"
+                                   class="app-link">
+                                    ${app.name}
+                                </a>
+                            `).join('')}
+                        </div>
+                        <p class="footer">${data.response.footer}</p>
+                    </div>
+                `;
+                break;
+
+            case 'links':
+                html = `
+                    <div class="message bot-message">
+                        <p>${data.response.text}</p>
+                        <div class="link-container">
+                            ${data.response.links.map(link => `
+                                <a href="${link.url}"
+                                   target="_blank"
+                                   class="form-link">
+                                    ${link.text}
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                break;
+
+            case 'plain':
+                html = `<div class="message bot-message">${data.response.text}</div>`;
+                break;
+
+            default:
+                html = `
+                    <div class="message bot-message error">
+                        ${data.response.text || "Beklenmeyen bir hata oluştu"}
+                    </div>
+                `;
+        }
+
+        container.innerHTML += html;
+    }
+
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') sendMessage();
+    });
 </script>
 </body>
 </html>
